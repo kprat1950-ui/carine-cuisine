@@ -13,18 +13,18 @@ function generateId() { return Date.now().toString(36) + Math.random().toString(
 
 function showToast(msg, type) {
   type = type || '';
-  const toast = document.getElementById('toast');
+  var toast = document.getElementById('toast');
   toast.textContent = msg;
   toast.className = 'toast show ' + type;
   setTimeout(function() { toast.className = 'toast hidden'; }, 2500);
 }
 
 function getCatLabel(cat) {
-  const map = { entrees: 'Entrees', plats: 'Plats', desserts: 'Desserts', boissons: 'Boissons', snacks: 'Snacks' };
+  var map = { entrees: 'Entrees', plats: 'Plats', desserts: 'Desserts', boissons: 'Boissons', snacks: 'Snacks' };
   return map[cat] || cat;
 }
 function getCatEmoji(cat) {
-  const map = { entrees: '🥗', plats: '🍽️', desserts: '🍰', boissons: '🥤', snacks: '🧁' };
+  var map = { entrees: '🥗', plats: '🍽', desserts: '🍰', boissons: '🥤', snacks: '🧁' };
   return map[cat] || '🍴';
 }
 function formatTime(min) {
@@ -56,23 +56,25 @@ function renderRecipes(filter, searchTerm) {
   if (searchTerm.trim()) {
     var term = searchTerm.toLowerCase();
     filtered = filtered.filter(function(r) {
-      return r.name.toLowerCase().includes(term) ||
-        (r.desc || '').toLowerCase().includes(term) ||
-        (r.ingredients || []).some(function(i) { return i.name.toLowerCase().includes(term); });
+      return r.name.toLowerCase().indexOf(term) >= 0 ||
+        (r.desc || '').toLowerCase().indexOf(term) >= 0 ||
+        (r.ingredients || []).some(function(i) { return i.name.toLowerCase().indexOf(term) >= 0; });
     });
   }
   if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
   grid.innerHTML = filtered.map(function(recipe) {
-    return '<div class="recipe-card" onclick="openDetail('' + recipe.id + '')">' +
-      '<div class="card-img-container">' +
-      (recipe.photo ? '<img src="' + recipe.photo + '" alt="' + recipe.name + '" loading="lazy" />' : '<div class="card-img-placeholder">' + getCatEmoji(recipe.cat) + '</div>') +
-      '<button class="card-fav ' + (recipe.fav ? 'active' : '') + '" onclick="toggleFav(event,'' + recipe.id + '')"><i class="fas fa-heart"></i></button>' +
-      '<span class="card-cat-badge">' + getCatLabel(recipe.cat) + '</span>' +
-      '</div><div class="card-body">' +
-      '<div class="card-title">' + recipe.name + '</div>' +
-      '<div class="card-meta"><i class="fas fa-clock"></i> ' + formatTime(recipe.time) + ' <i class="fas fa-users"></i> ' + (recipe.portions || 4) + '</div>' +
-      '</div></div>';
+    var imgHtml = recipe.photo
+      ? '<img src="' + recipe.photo + '" alt="" loading="lazy" />'
+      : '<div class="card-img-placeholder">' + getCatEmoji(recipe.cat) + '</div>';
+    return '<div class="recipe-card" onclick="openDetail(`' + recipe.id + '`)">'
+      + '<div class="card-img-container">' + imgHtml
+      + '<button class="card-fav ' + (recipe.fav ? 'active' : '') + '" onclick="event.stopPropagation();toggleFav(`' + recipe.id + '`)"><i class="fas fa-heart"></i></button>'
+      + '<span class="card-cat-badge">' + getCatLabel(recipe.cat) + '</span>'
+      + '</div><div class="card-body">'
+      + '<div class="card-title">' + recipe.name + '</div>'
+      + '<div class="card-meta"><i class="fas fa-clock"></i> ' + formatTime(recipe.time) + ' <i class="fas fa-users"></i> ' + (recipe.portions || 4) + '</div>'
+      + '</div></div>';
   }).join('');
 }
 
@@ -82,8 +84,7 @@ function updateStats() {
   document.getElementById('stat-cat').textContent = new Set(recipes.map(function(r) { return r.cat; })).size;
 }
 
-function toggleFav(e, id) {
-  e.stopPropagation();
+function toggleFav(id) {
   var r = recipes.find(function(r) { return r.id === id; });
   if (!r) return;
   r.fav = !r.fav;
@@ -138,9 +139,8 @@ function openDetail(id) {
     videoSection.classList.remove('hidden');
     var link = document.getElementById('detail-video-link');
     link.href = r.video;
-    var isTT = r.video.includes('tiktok');
-    var isYT = r.video.includes('youtube') || r.video.includes('youtu.be');
-    link.innerHTML = '<i class="fa' + (isTT ? 'b fa-tiktok' : isYT ? 'b fa-youtube' : 's fa-play-circle') + '"></i> Voir la video';
+    var icon = r.video.indexOf('tiktok') >= 0 ? 'fab fa-tiktok' : (r.video.indexOf('youtube') >= 0 || r.video.indexOf('youtu.be') >= 0 ? 'fab fa-youtube' : 'fas fa-play-circle');
+    link.innerHTML = '<i class="' + icon + '"></i> Voir la video';
   } else { videoSection.classList.add('hidden'); }
   var notesSection = document.getElementById('detail-notes-section');
   if (r.notes) {
@@ -164,9 +164,9 @@ function renderIngredients(ingredients, portions, base) {
 
 function renderSteps(steps) {
   document.getElementById('detail-steps').innerHTML = steps.map(function(step, i) {
-    return '<li onclick="this.querySelector('.step-text').classList.toggle('done')">' +
-      '<span class="step-number">' + (i+1) + '</span>' +
-      '<span class="step-text">' + step + '</span></li>';
+    return '<li onclick="this.querySelector('.step-text').classList.toggle('done')">'
+      + '<span class="step-number">' + (i+1) + '</span>'
+      + '<span class="step-text">' + step + '</span></li>';
   }).join('');
 }
 
@@ -191,7 +191,7 @@ function closeDetail() {
 }
 
 document.getElementById('btn-fav-detail').addEventListener('click', function() {
-  if (currentRecipe) toggleFav({ stopPropagation: function() {} }, currentRecipe.id);
+  if (currentRecipe) toggleFav(currentRecipe.id);
 });
 document.getElementById('btn-edit-detail').addEventListener('click', function() {
   if (currentRecipe) { var id = currentRecipe.id; closeDetail(); setTimeout(function() { openForm(id); }, 100); }
@@ -248,10 +248,10 @@ function addIngredientRow(qty, unit, name) {
   var container = document.getElementById('ingredients-list-form');
   var row = document.createElement('div');
   row.className = 'ingredient-form-row';
-  row.innerHTML = '<input type="text" placeholder="Qte" value="' + qty + '" class="ing-qty" />' +
-    '<input type="text" placeholder="Unite" value="' + unit + '" class="ing-unit" style="flex:0 0 70px"/>' +
-    '<input type="text" placeholder="Nom ingredient" value="' + name + '" class="ing-name" />' +
-    '<button class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+  row.innerHTML = '<input type="text" placeholder="Qte" value="' + qty + '" class="ing-qty" />'
+    + '<input type="text" placeholder="Unite" value="' + unit + '" class="ing-unit" style="flex:0 0 70px"/>'
+    + '<input type="text" placeholder="Nom ingredient" value="' + name + '" class="ing-name" />'
+    + '<button class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
   container.appendChild(row);
 }
 document.getElementById('btn-add-ingredient').addEventListener('click', function() { addIngredientRow(); });
@@ -262,9 +262,9 @@ function addStepRow(text) {
   var count = container.children.length + 1;
   var row = document.createElement('div');
   row.className = 'step-form-row';
-  row.innerHTML = '<span class="step-num-badge">' + count + '</span>' +
-    '<textarea placeholder="Decris cette etape..." rows="2" class="step-text-input">' + text + '</textarea>' +
-    '<button class="btn-remove-item" onclick="this.parentElement.remove();updateStepNumbers()"><i class="fas fa-times"></i></button>';
+  row.innerHTML = '<span class="step-num-badge">' + count + '</span>'
+    + '<textarea placeholder="Decris cette etape..." rows="2" class="step-text-input">' + text + '</textarea>'
+    + '<button class="btn-remove-item" onclick="this.parentElement.remove();updateStepNumbers()"><i class="fas fa-times"></i></button>';
   container.appendChild(row);
 }
 function updateStepNumbers() {
@@ -291,7 +291,11 @@ function saveRecipe() {
   var name = document.getElementById('form-name').value.trim();
   if (!name) { showToast('Donne un nom a la recette !', 'error'); return; }
   var ingredients = Array.from(document.querySelectorAll('.ingredient-form-row')).map(function(row) {
-    return { qty: row.querySelector('.ing-qty').value.trim(), unit: row.querySelector('.ing-unit').value.trim(), name: row.querySelector('.ing-name').value.trim() };
+    return {
+      qty: row.querySelector('.ing-qty').value.trim(),
+      unit: row.querySelector('.ing-unit').value.trim(),
+      name: row.querySelector('.ing-name').value.trim()
+    };
   }).filter(function(i) { return i.name; });
   var steps = Array.from(document.querySelectorAll('.step-text-input')).map(function(t) { return t.value.trim(); }).filter(function(s) { return s; });
   var existing = editingId ? recipes.find(function(r) { return r.id === editingId; }) : null;
@@ -353,11 +357,11 @@ function renderCourses() {
   if (courses.length === 0) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
   list.innerHTML = courses.map(function(item, i) {
-    return '<li class="courses-item ' + (item.checked ? 'checked' : '') + '" onclick="toggleCourse(' + i + ')">' +
-      '<div class="courses-checkbox"></div>' +
-      '<span class="courses-qty">' + (item.qty || '') + '</span>' +
-      '<span>' + item.name + '</span>' +
-      '<span class="courses-from">' + (item.from || '') + '</span></li>';
+    return '<li class="courses-item ' + (item.checked ? 'checked' : '') + '" onclick="toggleCourse(' + i + ')">'
+      + '<div class="courses-checkbox"></div>'
+      + '<span class="courses-qty">' + (item.qty || '') + '</span>'
+      + '<span>' + item.name + '</span>'
+      + '<span class="courses-from">' + (item.from || '') + '</span></li>';
   }).join('');
 }
 function toggleCourse(i) {
