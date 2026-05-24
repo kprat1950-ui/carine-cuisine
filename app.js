@@ -164,9 +164,10 @@ function renderIngredients(ingredients, portions, base) {
 
 function renderSteps(steps) {
   document.getElementById('detail-steps').innerHTML = steps.map(function(step, i) {
-    return '<li onclick="this.querySelector('.step-text').classList.toggle('done')">'
-      + '<span class="step-number">' + (i+1) + '</span>'
-      + '<span class="step-text">' + step + '</span></li>';
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="step-number">' + (i+1) + '</span><span class="step-text">' + step + '</span>';
+    li.addEventListener('click', function() { this.querySelector('.step-text').classList.toggle('done'); });
+    return li.outerHTML;
   }).join('');
 }
 
