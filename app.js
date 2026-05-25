@@ -69,7 +69,7 @@ function renderRecipes(filter, searchTerm) {
       : '<div class="card-img-placeholder">' + getCatEmoji(recipe.cat) + '</div>';
     return '<div class="recipe-card" onclick="openDetail(`' + recipe.id + '`)">'
       + '<div class="card-img-container">' + imgHtml
-      + '<button class="card-fav ' + (recipe.fav ? 'active' : '') + '" onclick="event.stopPropagation();toggleFav(`' + recipe.id + '`)"><i class="fas fa-heart"></i></button>'
+      + '<button type="button" class="card-fav ' + (recipe.fav ? 'active' : '') + '" onclick="event.stopPropagation();toggleFav(`' + recipe.id + '`)"><i class="fas fa-heart"></i></button>'
       + '<span class="card-cat-badge">' + getCatLabel(recipe.cat) + '</span>'
       + '</div><div class="card-body">'
       + '<div class="card-title">' + recipe.name + '</div>'
@@ -252,7 +252,7 @@ function addIngredientRow(qty, unit, name) {
   row.innerHTML = '<input type="text" placeholder="Qte" value="' + qty + '" class="ing-qty" />'
     + '<input type="text" placeholder="Unite" value="' + unit + '" class="ing-unit" style="flex:0 0 70px"/>'
     + '<input type="text" placeholder="Nom ingredient" value="' + name + '" class="ing-name" />'
-    + '<button class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+    + '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
   container.appendChild(row);
 }
 document.getElementById('btn-add-ingredient').addEventListener('click', function() { addIngredientRow(); });
@@ -265,7 +265,7 @@ function addStepRow(text) {
   row.className = 'step-form-row';
   row.innerHTML = '<span class="step-num-badge">' + count + '</span>'
     + '<textarea placeholder="Decris cette etape..." rows="2" class="step-text-input">' + text + '</textarea>'
-    + '<button class="btn-remove-item" onclick="this.parentElement.remove();updateStepNumbers()"><i class="fas fa-times"></i></button>';
+    + '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove();updateStepNumbers()"><i class="fas fa-times"></i></button>';
   container.appendChild(row);
 }
 function updateStepNumbers() {
