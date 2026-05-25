@@ -152,39 +152,59 @@ function openDetail(id) {
 }
 
 function renderIngredients(ingredients, portions, base) {
-  document.getElementById('detail-ingredients').innerHTML = ingredients.map(function(ing) {
-    var qtyDisplay = ing.qty;
-    if (ing.qty && !isNaN(parseFloat(ing.qty))) {
-      var adjusted = parseFloat(ing.qty) * portions / base;
-      qtyDisplay = (Number.isInteger(adjusted) ? adjusted : adjusted.toFixed(1)) + (ing.unit ? ' ' + ing.unit : '');
-    } else if (ing.qty) { qtyDisplay = ing.qty + (ing.unit ? ' ' + ing.unit : ''); }
-    return '<li><span class="ingredient-dot"></span><span class="ingredient-qty">' + (qtyDisplay || '') + '</span><span class="ingredient-name">' + ing.name + '</span></li>';
-  }).join('');
+  var el = document.getElementById('detail-ingredients');
+  if (!ingredients || ingredients.length === 0) { el.innerHTML = '<li class="empty-list">Aucun ingredient</li>'; return; }
+  var isSectioned = ingredients.length > 0 && typeof ingredients[0].items !== 'undefined';
+  if (!isSectioned) {
+    el.innerHTML = ingredients.map(function(ing) {
+      var qty = (portions && base && ing.qty) ? (parseFloat(ing.qty) * portions / base).toFixed(1).replace(/\.0$/,'') : (ing.qty || '');
+      return '<li class="ing-item"><span class="ing-qty">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
+    }).join('');
+  } else {
+    el.innerHTML = ingredients.map(function(section) {
+      var title = section.title ? '<li class="ing-section-title"><i class="fas fa-layer-group"></i> ' + section.title + '</li>' : '';
+      var items = (section.items || []).map(function(ing) {
+        var qty = (portions && base && ing.qty) ? (parseFloat(ing.qty) * portions / base).toFixed(1).replace(/\.0$/,'') : (ing.qty || '');
+        return '<li class="ing-item"><span class="ing-qty">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
+      }).join('');
+      return title + items;
+    }).join('');
+  }
 }
-
 function renderSteps(steps) {
-  document.getElementById('detail-steps').innerHTML = steps.map(function(step, i) {
-    var li = document.createElement('li');
-    li.innerHTML = '<span class="step-number">' + (i+1) + '</span><span class="step-text">' + step + '</span>';
-    li.addEventListener('click', function() { this.querySelector('.step-text').classList.toggle('done'); });
-    return li.outerHTML;
-  }).join('');
+  var el = document.getElementById('detail-steps');
+  if (!steps || steps.length === 0) { el.innerHTML = '<li class="empty-list">Aucune etape</li>'; return; }
+  var isSectioned = steps.length > 0 && typeof steps[0].items !== 'undefined';
+  el.innerHTML = '';
+  if (!isSectioned) {
+    steps.forEach(function(s, i) {
+      var li = document.createElement('li');
+      li.className = 'step-item';
+      li.innerHTML = '<span class="step-num">' + (i+1) + '</span><span class="step-text">' + s.text + '</span>';
+      li.addEventListener('click', function() { this.querySelector('.step-text').classList.toggle('done'); });
+      el.appendChild(li);
+    });
+  } else {
+    var stepNum = 0;
+    steps.forEach(function(section) {
+      if (section.title) {
+        var titleLi = document.createElement('li');
+        titleLi.className = 'step-section-title';
+        titleLi.innerHTML = '<i class="fas fa-layer-group"></i> ' + section.title;
+        el.appendChild(titleLi);
+      }
+      (section.items || []).forEach(function(s) {
+        stepNum++;
+        var li = document.createElement('li');
+        li.className = 'step-item';
+        li.innerHTML = '<span class="step-num">' + stepNum + '</span><span class="step-text">' + s.text + '</span>';
+        li.addEventListener('click', function() { this.querySelector('.step-text').classList.toggle('done'); });
+        el.appendChild(li);
+      });
+    });
+  }
 }
 
-document.getElementById('portions-minus').addEventListener('click', function() {
-  if (currentPortions <= 1) return;
-  currentPortions--;
-  document.getElementById('portions-display').textContent = currentPortions;
-  renderIngredients(currentRecipe.ingredients || [], currentPortions, basePortions);
-});
-document.getElementById('portions-plus').addEventListener('click', function() {
-  currentPortions++;
-  document.getElementById('portions-display').textContent = currentPortions;
-  renderIngredients(currentRecipe.ingredients || [], currentPortions, basePortions);
-});
-
-document.getElementById('btn-back-detail').addEventListener('click', closeDetail);
-document.getElementById('overlay-detail').addEventListener('click', closeDetail);
 function closeDetail() {
   document.getElementById('modal-detail').classList.add('hidden');
   document.body.style.overflow = '';
@@ -218,8 +238,10 @@ function clearForm() {
   document.getElementById('photo-preview').src = '';
   document.getElementById('photo-preview').classList.add('hidden');
   document.getElementById('photo-placeholder').style.display = 'flex';
-  document.getElementById('ingredients-list-form').innerHTML = '';
-  document.getElementById('steps-list-form').innerHTML = '';
+  document.    document.getElementById('ingredients-list-form').innerHTML = '';
+    addIngredientSection('');
+    document.getElementById('steps-list-form').innerHTML = '';
+    addStepSection('');
   currentPhotoBase64 = null;
 }
 
@@ -238,69 +260,156 @@ function fillForm(r) {
     document.getElementById('photo-placeholder').style.display = 'none';
     currentPhotoBase64 = r.photo;
   }
-  (r.ingredients || []).forEach(function(ing) { addIngredientRow(ing.qty, ing.unit, ing.name); });
-  if (!r.ingredients || r.ingredients.length === 0) addIngredientRow();
-  (r.steps || []).forEach(function(step) { addStepRow(step); });
-  if (!r.steps || r.steps.length === 0) addStepRow();
+    document.getElementById('ingredients-list-form').innerHTML = '';
+    if (r.ingredients && r.ingredients.length > 0) {
+      var ingIsSectioned = typeof r.ingredients[0].items !== 'undefined';
+      if (!ingIsSectioned) {
+        var sec = addIngredientSection('');
+        var ilist = sec.querySelector('.ing-rows-list');
+        ilist.innerHTML = '';
+        r.ingredients.forEach(function(ing) {
+          addIngredientRow(ilist);
+          var row = ilist.lastElementChild;
+          row.querySelector('.ing-qty').value = ing.qty || '';
+          row.querySelector('.ing-unit').value = ing.unit || '';
+          row.querySelector('.ing-name').value = ing.name || '';
+        });
+      } else {
+        r.ingredients.forEach(function(section) {
+          var sec = addIngredientSection(section.title || '');
+          var ilist = sec.querySelector('.ing-rows-list');
+          ilist.innerHTML = '';
+          (section.items || []).forEach(function(ing) {
+            addIngredientRow(ilist);
+            var row = ilist.lastElementChild;
+            row.querySelector('.ing-qty').value = ing.qty || '';
+            row.querySelector('.ing-unit').value = ing.unit || '';
+            row.querySelector('.ing-name').value = ing.name || '';
+          });
+        });
+      }
+    } else { addIngredientSection(''); }
+    document.getElementById('steps-list-form').innerHTML = '';
+    if (r.steps && r.steps.length > 0) {
+      var stepIsSectioned = typeof r.steps[0].items !== 'undefined';
+      if (!stepIsSectioned) {
+        var ssec = addStepSection('');
+        var slist = ssec.querySelector('.step-rows-list');
+        slist.innerHTML = '';
+        r.steps.forEach(function(step) {
+          addStepRow(slist);
+          slist.lastElementChild.querySelector('.step-text-input').value = step.text || '';
+        });
+        updateStepNumbers();
+      } else {
+        r.steps.forEach(function(section) {
+          var ssec = addStepSection(section.title || '');
+          var slist = ssec.querySelector('.step-rows-list');
+          slist.innerHTML = '';
+          (section.items || []).forEach(function(step) {
+            addStepRow(slist);
+            slist.lastElementChild.querySelector('.step-text-input').value = step.text || '';
+          });
+        });
+        updateStepNumbers();
+      }
+    } else { addStepSection(''); }
 }
 
-function addIngredientRow(qty, unit, name) {
-  qty = qty || ''; unit = unit || ''; name = name || '';
+
+function addIngredientSection(sectionTitle) {
   var container = document.getElementById('ingredients-list-form');
-  var row = document.createElement('div');
-  row.className = 'ingredient-form-row';
-  row.innerHTML = '<input type="text" placeholder="Qte" value="' + qty + '" class="ing-qty" />'
-    + '<input type="text" placeholder="Unite" value="' + unit + '" class="ing-unit" style="flex:0 0 70px"/>'
-    + '<input type="text" placeholder="Nom ingredient" value="' + name + '" class="ing-name" />'
-    + '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
-  container.appendChild(row);
+  var sectionDiv = document.createElement('div');
+  sectionDiv.className = 'form-section-block';
+  sectionDiv.innerHTML = '<div class="form-section-header">' +
+    '<input type="text" class="section-title-input" placeholder="Titre de la section (ex: Pour la pate)" />' +
+    '<button type="button" class="btn-remove-section" onclick="this.closest(\'.form-section-block\').remove()"><i class="fas fa-times"></i></button>' +
+    '</div>' +
+    '<ul class="ing-rows-list"></ul>' +
+    '<button type="button" class="btn-add-item-in-section" onclick="addIngredientRow(this.previousElementSibling)">' +
+    '<i class="fas fa-plus"></i> Ajouter un ingredient</button>';
+  if (sectionTitle) sectionDiv.querySelector('.section-title-input').value = sectionTitle;
+  container.appendChild(sectionDiv);
+  addIngredientRow(sectionDiv.querySelector('.ing-rows-list'));
+  return sectionDiv;
 }
-document.getElementById('btn-add-ingredient').addEventListener('click', function() { addIngredientRow(); });
 
-function addStepRow(text) {
-  text = text || '';
-  var container = document.getElementById('steps-list-form');
-  var count = container.children.length + 1;
-  var row = document.createElement('div');
-  row.className = 'step-form-row';
-  row.innerHTML = '<span class="step-num-badge">' + count + '</span>'
-    + '<textarea placeholder="Decris cette etape..." rows="2" class="step-text-input">' + text + '</textarea>'
-    + '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove();updateStepNumbers()"><i class="fas fa-times"></i></button>';
-  container.appendChild(row);
+function addIngredientRow(list) {
+  if (!list) list = document.querySelector('#ingredients-list-form .ing-rows-list:last-of-type');
+  if (!list) return;
+  var li = document.createElement('li');
+  li.className = 'ingredient-form-row';
+  li.innerHTML = '<input type="text" class="ing-qty" placeholder="Qte" />' +
+    '<input type="text" class="ing-unit" placeholder="Unite" />' +
+    '<input type="text" class="ing-name" placeholder="Nom ingredient" />' +
+    '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+  list.appendChild(li);
 }
+
+function addStepSection(sectionTitle) {
+  var container = document.getElementById('steps-list-form');
+  var sectionDiv = document.createElement('div');
+  sectionDiv.className = 'form-section-block';
+  sectionDiv.innerHTML = '<div class="form-section-header">' +
+    '<input type="text" class="section-title-input" placeholder="Titre de la section (ex: Preparer la pate)" />' +
+    '<button type="button" class="btn-remove-section" onclick="this.closest(\'.form-section-block\').remove(); updateStepNumbers()"><i class="fas fa-times"></i></button>' +
+    '</div>' +
+    '<ol class="step-rows-list"></ol>' +
+    '<button type="button" class="btn-add-item-in-section" onclick="addStepRow(this.previousElementSibling)">' +
+    '<i class="fas fa-plus"></i> Ajouter une etape</button>';
+  if (sectionTitle) sectionDiv.querySelector('.section-title-input').value = sectionTitle;
+  container.appendChild(sectionDiv);
+  addStepRow(sectionDiv.querySelector('.step-rows-list'));
+  updateStepNumbers();
+  return sectionDiv;
+}
+
+function addStepRow(list) {
+  if (!list) list = document.querySelector('#steps-list-form .step-rows-list:last-of-type');
+  if (!list) return;
+  var li = document.createElement('li');
+  li.className = 'step-form-row';
+  li.innerHTML = '<span class="step-num-badge">1</span>' +
+    '<input type="text" class="step-text-input" placeholder="Decrivez cette etape..." />' +
+    '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); updateStepNumbers()"><i class="fas fa-times"></i></button>';
+  list.appendChild(li);
+  updateStepNumbers();
+}
+
 function updateStepNumbers() {
   document.querySelectorAll('#steps-list-form .step-num-badge').forEach(function(b, i) { b.textContent = i + 1; });
 }
-document.getElementById('btn-add-step').addEventListener('click', function() { addStepRow(); });
 
-document.getElementById('form-photo-picker').addEventListener('click', function() { document.getElementById('photo-input').click(); });
-document.getElementById('photo-input').addEventListener('change', function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    currentPhotoBase64 = ev.target.result;
-    document.getElementById('photo-preview').src = currentPhotoBase64;
-    document.getElementById('photo-preview').classList.remove('hidden');
-    document.getElementById('photo-placeholder').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById('btn-save-recipe').addEventListener('click', saveRecipe);
+document.getElementById('btn-add-ingredient').addEventListener('click', function() { addIngredientSection(''); });
+document.getElementById('btn-add-step').addEventListener('click', function() { addStepSection(''); });
 function saveRecipe() {
   var name = document.getElementById('form-name').value.trim();
   if (!name) { showToast('Donne un nom a la recette !', 'error'); return; }
-  var ingredients = Array.from(document.querySelectorAll('.ingredient-form-row')).map(function(row) {
-    return {
-      qty: row.querySelector('.ing-qty').value.trim(),
-      unit: row.querySelector('.ing-unit').value.trim(),
-      name: row.querySelector('.ing-name').value.trim()
-    };
-  }).filter(function(i) { return i.name; });
-  var steps = Array.from(document.querySelectorAll('.step-text-input')).map(function(t) { return t.value.trim(); }).filter(function(s) { return s; });
-  var existing = editingId ? recipes.find(function(r) { return r.id === editingId; }) : null;
-  var recipe = {
+      var ingredients = [];
+    document.querySelectorAll('#ingredients-list-form .form-section-block').forEach(function(section) {
+      var titleEl = section.querySelector('.section-title-input');
+      var sTitle = titleEl ? titleEl.value.trim() : '';
+      var items = [];
+      section.querySelectorAll('.ingredient-form-row').forEach(function(row) {
+        var qty = row.querySelector('.ing-qty').value.trim();
+        var unit = row.querySelector('.ing-unit').value.trim();
+        var name = row.querySelector('.ing-name').value.trim();
+        if (name) items.push({ qty: qty, unit: unit, name: name });
+      });
+      if (items.length > 0) ingredients.push({ title: sTitle, items: items });
+    });
+    var steps = [];
+    document.querySelectorAll('#steps-list-form .form-section-block').forEach(function(section) {
+      var titleEl = section.querySelector('.section-title-input');
+      var sTitle = titleEl ? titleEl.value.trim() : '';
+      var items = [];
+      section.querySelectorAll('.step-text-input').forEach(function(input) {
+        var text = input.value.trim();
+        if (text) items.push({ text: text });
+      });
+      if (items.length > 0) steps.push({ title: sTitle, items: items });
+    });
+var recipe = {
     id: editingId || generateId(),
     name: name,
     desc: document.getElementById('form-desc').value.trim(),
