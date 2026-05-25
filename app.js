@@ -238,7 +238,7 @@ function clearForm() {
   document.getElementById('photo-preview').src = '';
   document.getElementById('photo-preview').classList.add('hidden');
   document.getElementById('photo-placeholder').style.display = 'flex';
-  document.    document.getElementById('ingredients-list-form').innerHTML = '';
+  document.getElementById('ingredients-list-form').innerHTML = '';
     addIngredientSection('');
     document.getElementById('steps-list-form').innerHTML = '';
     addStepSection('');
