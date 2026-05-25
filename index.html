@@ -20,6 +20,7 @@
       <div class="splash-emoji">&#127827;</div>
       <h1>Richard's Kitchen</h1>
       <p>Mon carnet de recettes</p>
+      <p class="splash-love-msg" id="splash-love-msg"></p>
     </div>
   </div>
   <div id="app" class="hidden">
@@ -34,6 +35,11 @@
           <button type="button" class="btn-icon btn-add-main" id="btn-add-main"><i class="fas fa-plus"></i></button>
         </div>
       </div>
+        <div class="btn-export-import">
+          <input type="file" id="import-json-input" accept=".json" class="hidden" />
+          <button type="button" class="btn-backup btn-backup-export" id="btn-export-json"><i class="fas fa-download"></i> Sauvegarder</button>
+          <button type="button" class="btn-backup btn-backup-import" id="btn-import-json"><i class="fas fa-upload"></i> Restaurer</button>
+        </div>
       <div class="search-bar">
         <i class="fas fa-search"></i>
         <input type="text" id="search-input" placeholder="Chercher une recette, un ingredient..." />
@@ -120,6 +126,7 @@
         </div>
         <div class="detail-actions">
           <button type="button" class="btn-secondary" id="btn-add-to-courses"><i class="fas fa-shopping-basket"></i> Ajouter aux courses</button>
+            <button type="button" class="btn-share-recipe" id="btn-share-recipe"><i class="fas fa-share-alt"></i> Partager</button>
           <button type="button" class="btn-danger" id="btn-delete-recipe"><i class="fas fa-trash"></i> Supprimer</button>
         </div>
       </div>
@@ -198,8 +205,26 @@
       </div>
     </div>
   </div>
+<!-- Share Modal -->
+<div class="modal hidden" id="modal-share">
+  <div class="modal-overlay" id="overlay-share"></div>
+  <div class="modal-sheet">
+    <div class="form-header">
+      <button type="button" class="btn-back" id="btn-share-close"><i class="fas fa-arrow-left"></i></button>
+      <h2>Partager la recette</h2>
+      <div></div>
+    </div>
+    <div id="share-preview-card"></div>
+    <div class="share-actions-bar">
+      <button type="button" class="btn-share-action btn-share-img" id="btn-share-image"><i class="fas fa-image"></i> Image</button>
+      <button type="button" class="btn-share-action btn-share-pdf" id="btn-share-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+    </div>
+  </div>
+</div>
   <div id="toast" class="toast hidden"></div>
   <script src="firebase-config.js"></script>
   <script src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
