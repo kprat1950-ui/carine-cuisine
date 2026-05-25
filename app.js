@@ -382,6 +382,25 @@ function updateStepNumbers() {
 
 document.getElementById('btn-add-ingredient').addEventListener('click', function() { addIngredientSection(''); });
 document.getElementById('btn-add-step').addEventListener('click', function() { addStepSection(''); });
+
+document.getElementById('form-photo-picker').addEventListener('click', function() {
+  document.getElementById('photo-input').click();
+});
+document.getElementById('photo-input').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    currentPhotoBase64 = ev.target.result;
+    var preview = document.getElementById('photo-preview');
+    var placeholder = document.getElementById('photo-placeholder');
+    preview.src = currentPhotoBase64;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('btn-save-recipe').addEventListener('click', saveRecipe);
 function saveRecipe() {
   var name = document.getElementById('form-name').value.trim();
   if (!name) { showToast('Donne un nom a la recette !', 'error'); return; }
@@ -409,6 +428,7 @@ function saveRecipe() {
       });
       if (items.length > 0) steps.push({ title: sTitle, items: items });
     });
+    var existing = editingId ? recipes.find(function(r) { return r.id === editingId; }) : null;
 var recipe = {
     id: editingId || generateId(),
     name: name,
