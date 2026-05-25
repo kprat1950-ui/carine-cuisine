@@ -28,23 +28,23 @@
           <div><h1>Carine</h1><p>Mon carnet gourmand</p></div>
         </div>
         <div class="header-actions">
-          <button class="btn-icon" id="btn-courses"><i class="fas fa-shopping-basket"></i></button>
-          <button class="btn-icon btn-add-main" id="btn-add-main"><i class="fas fa-plus"></i></button>
+          <button type="button" class="btn-icon" id="btn-courses"><i class="fas fa-shopping-basket"></i></button>
+          <button type="button" class="btn-icon btn-add-main" id="btn-add-main"><i class="fas fa-plus"></i></button>
         </div>
       </div>
       <div class="search-bar">
         <i class="fas fa-search"></i>
         <input type="text" id="search-input" placeholder="Chercher une recette, un ingredient..." />
-        <button id="search-clear" class="hidden"><i class="fas fa-times"></i></button>
+        <button type="button" id="search-clear" class="hidden"><i class="fas fa-times"></i></button>
       </div>
       <div class="categories-scroll">
-        <button class="cat-btn active" data-cat="all">Toutes</button>
-        <button class="cat-btn" data-cat="entrees">Entrees</button>
-        <button class="cat-btn" data-cat="plats">Plats</button>
-        <button class="cat-btn" data-cat="desserts">Desserts</button>
-        <button class="cat-btn" data-cat="boissons">Boissons</button>
-        <button class="cat-btn" data-cat="snacks">Snacks</button>
-        <button class="cat-btn" data-cat="favoris">Favoris</button>
+        <button type="button" class="cat-btn active" data-cat="all">Toutes</button>
+        <button type="button" class="cat-btn" data-cat="entrees">Entrees</button>
+        <button type="button" class="cat-btn" data-cat="plats">Plats</button>
+        <button type="button" class="cat-btn" data-cat="desserts">Desserts</button>
+        <button type="button" class="cat-btn" data-cat="boissons">Boissons</button>
+        <button type="button" class="cat-btn" data-cat="snacks">Snacks</button>
+        <button type="button" class="cat-btn" data-cat="favoris">Favoris</button>
       </div>
     </header>
     <main class="main-content">
@@ -60,15 +60,15 @@
         <div class="empty-emoji">&#128105;&#8205;&#127859;</div>
         <h2>Pas encore de recettes</h2>
         <p>Commence a ajouter tes recettes preferees !</p>
-        <button class="btn-primary" id="btn-add-empty"><i class="fas fa-plus"></i> Ajouter une recette</button>
+        <button type="button" class="btn-primary" id="btn-add-empty"><i class="fas fa-plus"></i> Ajouter une recette</button>
       </div>
     </main>
     <nav class="bottom-nav">
-      <button class="nav-btn active" id="nav-home"><i class="fas fa-home"></i><span>Accueil</span></button>
-      <button class="nav-btn" id="nav-search-btn"><i class="fas fa-search"></i><span>Recherche</span></button>
-      <button class="nav-btn nav-btn-center" id="nav-add"><i class="fas fa-plus"></i></button>
-      <button class="nav-btn" id="nav-favs"><i class="fas fa-heart"></i><span>Favoris</span></button>
-      <button class="nav-btn" id="nav-courses-btn"><i class="fas fa-shopping-basket"></i><span>Courses</span></button>
+      <button type="button" class="nav-btn active" id="nav-home"><i class="fas fa-home"></i><span>Accueil</span></button>
+      <button type="button" class="nav-btn" id="nav-search-btn"><i class="fas fa-search"></i><span>Recherche</span></button>
+      <button type="button" class="nav-btn nav-btn-center" id="nav-add"><i class="fas fa-plus"></i></button>
+      <button type="button" class="nav-btn" id="nav-favs"><i class="fas fa-heart"></i><span>Favoris</span></button>
+      <button type="button" class="nav-btn" id="nav-courses-btn"><i class="fas fa-shopping-basket"></i><span>Courses</span></button>
     </nav>
   </div>
   <div class="modal hidden" id="modal-detail">
@@ -77,9 +77,9 @@
       <div class="modal-img-container">
         <img id="detail-img" src="" alt="" />
         <div class="modal-img-overlay"></div>
-        <button class="btn-back" id="btn-back-detail"><i class="fas fa-arrow-left"></i></button>
-        <button class="btn-fav-detail" id="btn-fav-detail"><i class="fas fa-heart"></i></button>
-        <button class="btn-edit-detail" id="btn-edit-detail"><i class="fas fa-pen"></i></button>
+        <button type="button" class="btn-back" id="btn-back-detail"><i class="fas fa-arrow-left"></i></button>
+        <button type="button" class="btn-fav-detail" id="btn-fav-detail"><i class="fas fa-heart"></i></button>
+        <button type="button" class="btn-edit-detail" id="btn-edit-detail"><i class="fas fa-pen"></i></button>
       </div>
       <div class="modal-body">
         <div class="detail-header">
@@ -95,9 +95,9 @@
         <div class="portions-adjuster">
           <span>Ajuster les portions :</span>
           <div class="portions-controls">
-            <button id="portions-minus"><i class="fas fa-minus"></i></button>
+            <button type="button" id="portions-minus"><i class="fas fa-minus"></i></button>
             <span id="portions-display">4</span>
-            <button id="portions-plus"><i class="fas fa-plus"></i></button>
+            <button type="button" id="portions-plus"><i class="fas fa-plus"></i></button>
           </div>
         </div>
         <div class="detail-section">
@@ -117,8 +117,8 @@
           <p id="detail-notes" class="notes-text"></p>
         </div>
         <div class="detail-actions">
-          <button class="btn-secondary" id="btn-add-to-courses"><i class="fas fa-shopping-basket"></i> Ajouter aux courses</button>
-          <button class="btn-danger" id="btn-delete-recipe"><i class="fas fa-trash"></i> Supprimer</button>
+          <button type="button" class="btn-secondary" id="btn-add-to-courses"><i class="fas fa-shopping-basket"></i> Ajouter aux courses</button>
+          <button type="button" class="btn-danger" id="btn-delete-recipe"><i class="fas fa-trash"></i> Supprimer</button>
         </div>
       </div>
     </div>
@@ -127,9 +127,9 @@
     <div class="modal-overlay" id="overlay-form"></div>
     <div class="modal-sheet modal-form-sheet">
       <div class="form-header">
-        <button class="btn-back" id="btn-back-form"><i class="fas fa-arrow-left"></i></button>
+        <button type="button" class="btn-back" id="btn-back-form"><i class="fas fa-arrow-left"></i></button>
         <h2 id="form-title">Nouvelle recette</h2>
-        <button class="btn-save" id="btn-save-recipe"><i class="fas fa-check"></i></button>
+        <button type="button" class="btn-save" id="btn-save-recipe"><i class="fas fa-check"></i></button>
       </div>
       <div class="form-body">
         <div class="form-photo-picker" id="form-photo-picker">
@@ -166,12 +166,12 @@
         <div class="form-section">
           <label>Ingredients</label>
           <div id="ingredients-list-form"></div>
-          <button class="btn-add-item" id="btn-add-ingredient"><i class="fas fa-plus"></i> Ajouter un ingredient</button>
+          <button type="button" class="btn-add-item" id="btn-add-ingredient"><i class="fas fa-plus"></i> Ajouter un ingredient</button>
         </div>
         <div class="form-section">
           <label>Etapes de preparation</label>
           <div id="steps-list-form"></div>
-          <button class="btn-add-item" id="btn-add-step"><i class="fas fa-plus"></i> Ajouter une etape</button>
+          <button type="button" class="btn-add-item" id="btn-add-step"><i class="fas fa-plus"></i> Ajouter une etape</button>
         </div>
         <div class="form-section"><label>Lien video (TikTok, YouTube...)</label><input type="url" id="form-video" placeholder="https://www.tiktok.com/..." /></div>
         <div class="form-section"><label>Notes personnelles</label><textarea id="form-notes" placeholder="Astuces, variantes, souvenirs..." rows="3"></textarea></div>
@@ -182,9 +182,9 @@
     <div class="modal-overlay" id="overlay-courses"></div>
     <div class="modal-sheet">
       <div class="form-header">
-        <button class="btn-back" id="btn-back-courses"><i class="fas fa-arrow-left"></i></button>
+        <button type="button" class="btn-back" id="btn-back-courses"><i class="fas fa-arrow-left"></i></button>
         <h2>Liste de courses</h2>
-        <button class="btn-save" id="btn-clear-courses"><i class="fas fa-trash"></i></button>
+        <button type="button" class="btn-save" id="btn-clear-courses"><i class="fas fa-trash"></i></button>
       </div>
       <div class="form-body">
         <div id="courses-empty" class="empty-state">
