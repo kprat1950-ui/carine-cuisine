@@ -5,6 +5,7 @@ let editingId = null;
 let currentFilter = 'all';
 let currentPortions = 4;
 let basePortions = 4;
+let portionsMemory = JSON.parse(localStorage.getItem('carine_portions') || '{}');
 let currentPhotoBase64 = null;
 
 function saveRecipes() { localStorage.setItem('carine_recipes', JSON.stringify(recipes)); }
@@ -126,7 +127,7 @@ function openDetail(id) {
   if (!r) return;
   currentRecipe = r;
   basePortions = r.portions || 4;
-  currentPortions = basePortions;
+  currentPortions = portionsMemory[r.id] !== undefined ? portionsMemory[r.id] : basePortions;
   document.getElementById('detail-img').src = r.photo || '';
   document.getElementById('detail-img').style.display = r.photo ? 'block' : 'none';
   document.getElementById('detail-cat-badge').textContent = getCatLabel(r.cat);
@@ -163,14 +164,16 @@ function renderIngredients(ingredients, portions, base) {
   if (!isSectioned) {
     el.innerHTML = ingredients.map(function(ing) {
       var qty = (portions && base && ing.qty) ? (parseFloat(ing.qty) * portions / base).toFixed(1).replace(/\.0$/,'') : (ing.qty || '');
-      return '<li class="ing-item"><span class="ing-qty">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
+      var rawQty = parseFloat(ing.qty);
+      return '<li class="ing-item"><span class="ing-qty conv-qty" onclick="showConversionPopup(event,\'' + qty + '\',\'' + (ing.unit || '').replace(/'/g, '') + '\')" title="📏 Convertir">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
     }).join('');
   } else {
     el.innerHTML = ingredients.map(function(section) {
       var title = section.title ? '<li class="ing-section-title"><i class="fas fa-layer-group"></i> ' + section.title + '</li>' : '';
       var items = (section.items || []).map(function(ing) {
         var qty = (portions && base && ing.qty) ? (parseFloat(ing.qty) * portions / base).toFixed(1).replace(/\.0$/,'') : (ing.qty || '');
-        return '<li class="ing-item"><span class="ing-qty">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
+        var rawQty = parseFloat(ing.qty);
+      return '<li class="ing-item"><span class="ing-qty conv-qty" onclick="showConversionPopup(event,\'' + qty + '\',\'' + (ing.unit || '').replace(/'/g, '') + '\')" title="📏 Convertir">' + qty + ' ' + (ing.unit || '') + '</span><span class="ing-name">' + ing.name + '</span></li>';
       }).join('');
       return title + items;
     }).join('');
@@ -695,4 +698,176 @@ document.addEventListener("DOMContentLoaded", function() {
   if (btnSharePdf) btnSharePdf.addEventListener("click", downloadSharePDF);
   var btnShareRecipe = document.getElementById("btn-share-recipe");
   if (btnShareRecipe) btnShareRecipe.addEventListener("click", function() { shareRecipe(currentRecipe); });
+});
+
+
+// ============================================================
+// PORTIONS MEMORY - Save/restore portions per recipe
+// ============================================================
+function savePortionsMemory(recipeId, portions) {
+  if (!recipeId) return;
+  portionsMemory[recipeId] = portions;
+  localStorage.setItem('carine_portions', JSON.stringify(portionsMemory));
+}
+
+// Override portions +/- with memory save
+(function setupPortionsMemory() {
+  var btnMinus = document.getElementById('portions-minus');
+  var btnPlus = document.getElementById('portions-plus');
+  var display = document.getElementById('portions-display');
+  if (btnMinus) {
+    btnMinus.addEventListener('click', function() {
+      if (currentPortions > 1) {
+        currentPortions--;
+        display.textContent = currentPortions;
+        if (currentRecipe) {
+          savePortionsMemory(currentRecipe.id, currentPortions);
+          renderIngredients(currentRecipe.ingredients || [], currentPortions, basePortions);
+          renderSteps(currentRecipe.steps || []);
+        }
+      }
+    });
+  }
+  if (btnPlus) {
+    btnPlus.addEventListener('click', function() {
+      currentPortions++;
+      display.textContent = currentPortions;
+      if (currentRecipe) {
+        savePortionsMemory(currentRecipe.id, currentPortions);
+        renderIngredients(currentRecipe.ingredients || [], currentPortions, basePortions);
+        renderSteps(currentRecipe.steps || []);
+      }
+    });
+  }
+})();
+
+// ============================================================
+// CONVERSION D'UNITES FRANCAISES
+// Popup au clic sur une quantite dans la fiche recette
+// ============================================================
+var conversionRules = [
+  // Poids
+  { units: ['g', 'gr', 'gramme', 'grammes'],
+    convert: function(v) {
+      var results = [];
+      if (v >= 1000) results.push((v/1000).toFixed(2).replace(/\.?0+$/, '') + ' kg');
+      else results.push(v + ' g');
+      results.push((v/28.35).toFixed(1) + ' oz');
+      if (v >= 500) results.push((v/453.6).toFixed(2) + ' lb');
+      // Cuillères approximatives
+      results.push('≈ ' + Math.round(v/15) + ' c. \u00e0 soupe');
+      return results;
+    }
+  },
+  // Volume liquide
+  { units: ['ml', 'mL', 'millilitre', 'millilitres'],
+    convert: function(v) {
+      var results = [];
+      if (v >= 1000) results.push((v/1000).toFixed(2).replace(/\.?0+$/, '') + ' L');
+      else if (v >= 100) results.push((v/100).toFixed(1) + ' cl');
+      results.push((v/100).toFixed(1) + ' cl');
+      results.push((v/250).toFixed(2).replace(/\.?0+$/, '') + ' tasse(s)');
+      results.push(Math.round(v/15) + ' c. \u00e0 soupe');
+      return [...new Set(results)];
+    }
+  },
+  { units: ['cl', 'cL', 'centilitre', 'centilitres'],
+    convert: function(v) {
+      var ml = v * 10;
+      var results = [];
+      results.push(ml + ' ml');
+      if (v >= 10) results.push((v/10).toFixed(1).replace(/\.?0+$/, '') + ' L');
+      results.push((v/25).toFixed(2).replace(/\.?0+$/, '') + ' tasse(s)');
+      results.push(Math.round(ml/15) + ' c. \u00e0 soupe');
+      return results;
+    }
+  },
+  { units: ['L', 'litre', 'litres', 'l'],
+    convert: function(v) {
+      var results = [];
+      results.push((v*100) + ' cl');
+      results.push((v*1000) + ' ml');
+      results.push(Math.round(v*4) + ' tasse(s)');
+      return results;
+    }
+  },
+  // Cuilleres
+  { units: ['c. \u00e0 soupe', 'cs', 'c.s.', 'cuill\u00e8re \u00e0 soupe'],
+    convert: function(v) {
+      var results = [];
+      results.push((v*15) + ' ml');
+      results.push((v*1.5) + ' cl');
+      results.push(v*3 + ' c. \u00e0 caf\u00e9');
+      return results;
+    }
+  },
+  { units: ['c. \u00e0 caf\u00e9', 'cc', 'c.c.', 'cuill\u00e8re \u00e0 caf\u00e9'],
+    convert: function(v) {
+      var results = [];
+      results.push((v*5) + ' ml');
+      results.push(Math.round(v/3*10)/10 + ' c. \u00e0 soupe');
+      return results;
+    }
+  },
+  // kg
+  { units: ['kg', 'kilogramme', 'kilogrammes'],
+    convert: function(v) {
+      var results = [];
+      results.push((v*1000) + ' g');
+      results.push((v*35.27).toFixed(1) + ' oz');
+      results.push((v*2.205).toFixed(2) + ' lb');
+      return results;
+    }
+  }
+];
+
+function detectAndConvert(qtyStr, unitStr) {
+  var val = parseFloat(qtyStr);
+  if (isNaN(val)) return null;
+  var unit = (unitStr || '').trim().toLowerCase();
+  for (var i = 0; i < conversionRules.length; i++) {
+    var rule = conversionRules[i];
+    for (var j = 0; j < rule.units.length; j++) {
+      if (unit === rule.units[j].toLowerCase()) {
+        return { value: val, unit: unitStr, conversions: rule.convert(val) };
+      }
+    }
+  }
+  return null;
+}
+
+function showConversionPopup(event, qtyStr, unitStr) {
+  event.stopPropagation();
+  var result = detectAndConvert(qtyStr, unitStr);
+  if (!result) return;
+  // Remove existing popup
+  var existing = document.getElementById('conversion-popup');
+  if (existing) existing.remove();
+  var popup = document.createElement('div');
+  popup.id = 'conversion-popup';
+  popup.className = 'conversion-popup';
+  var html = '<div class="conv-header"><span>📏 ' + result.value + ' ' + result.unit + ' =</span><button type="button" class="conv-close" onclick="document.getElementById(\'conversion-popup\').remove()">×</button></div>';
+  html += '<ul class="conv-list">';
+  for (var i = 0; i < result.conversions.length; i++) {
+    html += '<li>' + result.conversions[i] + '</li>';
+  }
+  html += '</ul>';
+  popup.innerHTML = html;
+  // Position near the click
+  document.body.appendChild(popup);
+  var rect = event.target.getBoundingClientRect();
+  var top = rect.bottom + window.scrollY + 8;
+  var left = Math.min(rect.left, window.innerWidth - 220);
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+  // Auto close after 4 seconds
+  setTimeout(function() { var p = document.getElementById('conversion-popup'); if (p) p.remove(); }, 4000);
+}
+
+// Close popup when clicking elsewhere
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#conversion-popup') && !e.target.classList.contains('conv-qty')) {
+    var p = document.getElementById('conversion-popup');
+    if (p) p.remove();
+  }
 });
