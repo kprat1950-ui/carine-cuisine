@@ -1,4 +1,10 @@
-let recipes = JSON.parse(localStorage.getItem('carine_recipes') || '[]');
+// ========== SUPABASE CONFIG ==========
+const SUPABASE_URL = 'https://yyjjfmzlyuhaqfcpptdc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_zItFPbPfSxfBx9zW7NzavA_-ziTBHKf';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+// ======================================
+
+let recipes = [];
 let courses = JSON.parse(localStorage.getItem('carine_courses') || '[]');
 let currentRecipe = null;
 let editingId = null;
@@ -8,17 +14,35 @@ let basePortions = 4;
 let portionsMemory = JSON.parse(localStorage.getItem('carine_portions') || '{}');
 let currentPhotoBase64 = null;
 
-function saveRecipes() {
-  try {
-    localStorage.setItem('carine_recipes', JSON.stringify(recipes));
-  } catch(e) {
-    if (e.name === 'QuotaExceededError' || e.code === 22) {
-      showToast('Stockage plein ! Supprimez des photos pour libérer de la place.', 'error');
-    } else {
-      showToast('Erreur de sauvegarde : ' + e.message, 'error');
-    }
-  }
+async function saveRecipe_toCloud(recipe) {
+  if (!sb) return;
+  const row = {
+    id: recipe.id,
+    name: recipe.name,
+    description: recipe.desc || '',
+    cat: recipe.cat || 'plats',
+    diff: recipe.diff || 'Facile',
+    time: recipe.time || null,
+    portions: recipe.portions || 4,
+    video: recipe.video || '',
+    notes: recipe.notes || '',
+    photo: recipe.photo || null,
+    ingredients: recipe.ingredients || [],
+    steps: recipe.steps || [],
+    fav: recipe.fav || false,
+    healthy: recipe.healthy || false,
+    created_at: recipe.createdAt || Date.now()
+  };
+  const { error } = await sb.from('recipes').upsert(row, { onConflict: 'id' });
+  if (error) showToast('Erreur cloud : ' + error.message, 'error');
 }
+async function deleteRecipe_fromCloud(id) {
+  if (!sb) return;
+  await sb.from('recipes').delete().eq('id', id);
+}
+function saveRecipes() {
+  try { localStorage.setItem('carine_recipes', JSON.stringify(recipes)); } catch(e) {}
+}}
 function saveCourses() { localStorage.setItem('carine_courses', JSON.stringify(courses)); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
@@ -48,17 +72,52 @@ function formatTime(min) {
 
 var loveMessages = ["Je t’aime autant que tu aimes la cuisine... et c’est infini 🍓","Avec toi, même les recettes ratées deviennent un souvenir parfait 🥰","Pétillante comme le champagne, douce comme la crème brülée ✨","Ces yeux verts qui étincellent... même tes recettes ne sont pas aussi envoutantes 💚","Une sportive qui ne lâche rien, même devant une recette compliquée 💪🍳","Ta cuisine a un super pouvoir : elle transforme chaque repas en moment magique 🌟","Tu es le secret ingrédient de chaque recette que tu touches 🌟","Aussi belle que pétillante, aussi forte que gourmande — c’est toi, Carine 👑","Tes yeux verts brillent plus que toutes les étoiles Michelin 💚⭐","Chaque recette que tu cuisines est une déclaration d’amour 🍓"];
 
-window.addEventListener('load', function() {
+window.addEventListener('load', async function() {
   var msg = loveMessages[Math.floor(Math.random() * loveMessages.length)];
   var msgEl = document.getElementById('splash-love-msg');
   if (msgEl) msgEl.textContent = msg;
+  // Charger les recettes depuis Supabase
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('recipes').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        recipes = data.map(function(r) {
+          return {
+            id: r.id,
+            name: r.name,
+            desc: r.description,
+            cat: r.cat,
+            diff: r.diff,
+            time: r.time,
+            portions: r.portions,
+            video: r.video,
+            notes: r.notes,
+            photo: r.photo,
+            ingredients: r.ingredients || [],
+            steps: r.steps || [],
+            fav: r.fav,
+            healthy: r.healthy,
+            createdAt: r.created_at
+          };
+        });
+        // Mettre a jour le backup local
+        try { localStorage.setItem('carine_recipes', JSON.stringify(recipes)); } catch(e) {}
+      }
+    } catch(e) {
+      // Fallback sur localStorage si pas de connexion
+      recipes = JSON.parse(localStorage.getItem('carine_recipes') || '[]');
+    }
+  } else {
+    recipes = JSON.parse(localStorage.getItem('carine_recipes') || '[]');
+  }
   setTimeout(function() {
     document.getElementById('splash-screen').style.display = 'none';
     document.getElementById('app').classList.remove('hidden');
     renderRecipes();
     updateStats();
-  }, 3200);
+  }, 2000);
 });
+
 
 function renderRecipes(filter, searchTerm) {
   filter = filter || currentFilter;
@@ -107,7 +166,8 @@ function toggleFav(id) {
   if (!r) return;
   r.fav = !r.fav;
   saveRecipes(); renderRecipes(); updateStats();
-  showToast(r.fav ? 'Ajoute aux favoris !' : 'Retire des favoris', r.fav ? 'success' : '');
+  saveRecipe_toCloud(r);
+  showToast(r.fav ? 'Ajouté aux favoris !' : 'Retiré des favoris', r.fav ? 'success' : '');
   if (currentRecipe && currentRecipe.id === id) {
     document.getElementById('btn-fav-detail').classList.toggle('active', r.fav);
     currentRecipe.fav = r.fav;
@@ -490,7 +550,9 @@ var recipe = {
     recipes.unshift(recipe);
     showToast('Recette ajoutee !', 'success');
   }
-  saveRecipes(); closeForm(); renderRecipes(); updateStats();
+  saveRecipes();
+  saveRecipe_toCloud(recipe);
+  closeForm(); renderRecipes(); updateStats();
 }
 
 function closeForm() {
@@ -505,8 +567,9 @@ document.getElementById('btn-delete-recipe').addEventListener('click', function(
   if (!currentRecipe) return;
   if (!confirm('Supprimer cette recette ?')) return;
   recipes = recipes.filter(function(r) { return r.id !== currentRecipe.id; });
+  deleteRecipe_fromCloud(currentRecipe.id);
   saveRecipes(); closeDetail(); renderRecipes(); updateStats();
-  showToast('Recette supprimee');
+  showToast('Recette supprimée');
 });
 
 function openCourses() {
@@ -603,6 +666,8 @@ function importRecipes(event) {
       });
       recipes = recipes.concat(imported);
       saveRecipes();
+      // Sauvegarder les nouvelles recettes dans le cloud
+      imported.forEach(function(r) { saveRecipe_toCloud(r); });
       renderRecipes();
       updateStats();
       showToast(imported.length + " recette(s) importée(s) !", "success");
