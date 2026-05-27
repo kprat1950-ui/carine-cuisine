@@ -102,7 +102,7 @@ body { font-family: var(--font-body); background: var(--cream); color: var(--tex
 .nav-btn i { font-size: 1.2rem; }
 .nav-btn.active { color: var(--terracotta); }
 .nav-btn.active i { transform: scale(1.1); }
-.nav-btn-center { background: linear-gradient(135deg, var(--coral), var(--terracotta)); color: white !important; border-radius: 50%; width: 56px; height: 56px; flex: 0 0 56px; box-shadow: 0 4px 15px var(--shadow-strong); margin-bottom: 10px; }
+.nav-btn-center { background: linear-gradient(135deg, var(--coral), var(--terracotta)); color: white !important; border-radius: 50%; width: 56px; height: 56px; flex: 0 0 56px; box-shadow: 0 4px 15px var(--shadow-strong); transform: translateY(-10px); }
 .nav-btn-center i { font-size: 1.4rem !important; }
 .nav-btn-center:hover { transform: scale(1.05) translateY(-2px); }
 
