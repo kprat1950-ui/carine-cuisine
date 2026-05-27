@@ -694,44 +694,59 @@ function shareRecipe(recipe) {
 }
 
 function buildSharePreview(recipe) {
-  var preview = document.getElementById("share-preview-card");
-  if (!preview) return;
-  var catEmoji = getCatEmoji(recipe.cat);
-  var catLabel = getCatLabel(recipe.cat);
-  var ingHtml = "";
-  var ingredients = recipe.ingredients || [];
-  if (ingredients.length > 0 && ingredients[0].items) {
-    ingredients.forEach(function(section) {
-      if (section.title) ingHtml += "<div class=\"share-section-title\">" + section.title + "</div>";
-      (section.items || []).forEach(function(ing) {
-        if (ing.name) ingHtml += "<li>" + (ing.qty ? ing.qty + " " : "") + (ing.unit ? ing.unit + " " : "") + ing.name + "</li>";
-      });
+var preview = document.getElementById("share-preview-card");
+if (!preview) return;
+var catEmoji = getCatEmoji(recipe.cat);
+var catLabel = getCatLabel(recipe.cat);
+
+// Build ingredients HTML
+var ingHtml = "";
+var ingredients = recipe.ingredients || [];
+if (ingredients.length > 0 && typeof ingredients[0].items !== 'undefined') {
+  ingredients.forEach(function(section) {
+    if (section.title) ingHtml += '<div class="share-section-title">' + section.title + '</div>';
+    (section.items || []).forEach(function(ing) {
+      if (ing && ing.name) ingHtml += '<li>' + (ing.qty ? ing.qty + ' ' : '') + (ing.unit ? ing.unit + ' ' : '') + ing.name + '</li>';
     });
-  } else {
-    ingredients.forEach(function(ing) {
-      if (ing.name) ingHtml += "<li>" + (ing.qty ? ing.qty + " " : "") + (ing.unit ? ing.unit + " " : "") + ing.name + "</li>";
-    });
-  }
-  var stepsHtml = "";
-  var steps = recipe.steps || [];
-  var stepNum = 0;
-  if (steps.length > 0 && steps[0].items) {
-    steps.forEach(function(section) {
-      if (section.title) stepsHtml += "<div class=\"share-section-title\">" + section.title + "</div>";
-      (section.items || []).forEach(function(s) {
-        if (s && s.text) { stepNum++; stepsHtml += "<li><span class=\"step-num\">" + stepNum + "</span>" + s.text + "</li>"; }
-      });
-    });
-  } else {
-    steps.forEach(function(s, i) {
-      if (s && s.text) stepsHtml += "<li><span class=\"step-num\">" + (i+1) + "</span>" + s.text + "</li>";
-    });
-  }
-  var photoHtml = recipe.photo
-    ? "<img src=\"" + recipe.photo + "\" class=\"share-card-photo\" alt=\"\" />"
-    : "<div class=\"share-card-photo-placeholder\">" + catEmoji + "</div>";
-  preview.innerHTML = "<div class=\"share-card\">"    + photoHtml    + "<div class=\"share-card-body\">"    + "<div class=\"share-card-header\"><span class=\"share-cat-badge\">" + catEmoji + " " + catLabel + "</span><h2>" + recipe.name + "</h2>"    + (recipe.desc ? "<p class=\"share-desc\">" + recipe.desc + "</p>" : "")    + "<div class=\"share-meta\">"    + "<span>🕒 " + formatTime(recipe.time) + "</span>"    + "<span>👥 " + (recipe.portions || 4) + " pers.</span>"    + "<span>📊 " + (recipe.diff || "Facile") + "</span>"    + "</div></div>"    + (ingHtml ? "<div class=\"share-section\"><h3>🥕 Ingrédients</h3><ul>" + ingHtml + "</ul></div>" : "")    + (stepsHtml ? "<div class=\"share-section\"><h3>📋 Préparation</h3><ol>" + stepsHtml + "</ol></div>" : "")    + "<div class=\"share-footer\">Richard's Kitchen 🍓</div>"    + "</div></div>";
+  });
+} else {
+  ingredients.forEach(function(ing) {
+    if (ing && ing.name) ingHtml += '<li>' + (ing.qty ? ing.qty + ' ' : '') + (ing.unit ? ing.unit + ' ' : '') + ing.name + '</li>';
+  });
 }
+
+// Build steps HTML
+var stepsHtml = "";
+var steps = recipe.steps || [];
+var stepNum = 0;
+if (steps.length > 0 && typeof steps[0].items !== 'undefined') {
+  steps.forEach(function(section) {
+    if (section.title) stepsHtml += '<div class="share-section-title">' + section.title + '</div>';
+    (section.items || []).forEach(function(s) {
+      if (s && s.text) { stepNum++; stepsHtml += '<li><span class="step-num">' + stepNum + '</span>' + s.text + '</li>'; }
+    });
+  });
+} else {
+  steps.forEach(function(s, i) {
+    var txt = typeof s === 'string' ? s : (s && s.text ? s.text : '');
+    if (txt) stepsHtml += '<li><span class="step-num">' + (i+1) + '</span>' + txt + '</li>';
+  });
+}
+
+var photoHtml = recipe.photo
+  ? '<img src="' + recipe.photo + '" class="share-card-photo" alt="" />'
+  : '<div class="share-card-photo-placeholder">' + catEmoji + '</div>';
+
+preview.innerHTML = '<div class="share-card">' + photoHtml + '<div class="share-card-body">'
+  + '<div class="share-card-header"><span class="share-cat-badge">' + catEmoji + ' ' + catLabel + '</span><h2>' + recipe.name + '</h2>'
+  + (recipe.desc ? '<p class="share-desc">' + recipe.desc + '</p>' : '')
+  + '<div class="share-meta"><span>🕒 ' + formatTime(recipe.time) + '</span><span>👥 ' + (recipe.portions || 4) + ' pers.</span><span>📊 ' + (recipe.diff || 'Facile') + '</span></div></div>'
+  + (ingHtml ? '<div class="share-section"><h3>🥕 Ingrédients</h3><ul>' + ingHtml + '</ul></div>' : '')
+  + (stepsHtml ? '<div class="share-section"><h3>📋 Préparation</h3><ol>' + stepsHtml + '</ol></div>' : '')
+  + '<div class="share-footer">Richard's Kitchen 🍓</div>'
+  + '</div></div>';
+}
+
 
 function downloadShareImage() {
   var card = document.querySelector("#share-preview-card .share-card");
