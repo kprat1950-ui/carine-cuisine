@@ -56,6 +56,7 @@ function renderRecipes(filter, searchTerm) {
   var empty = document.getElementById('empty-state');
   var filtered = recipes.filter(function(r) {
     if (filter === 'favoris') return r.fav;
+    if (filter === 'healthy') return r.healthy;
     if (filter !== 'all') return r.cat === filter;
     return true;
   });
@@ -76,7 +77,7 @@ function renderRecipes(filter, searchTerm) {
     return '<div class="recipe-card" onclick="openDetail(`' + recipe.id + '`)">'
       + '<div class="card-img-container">' + imgHtml
       + '<button type="button" class="card-fav ' + (recipe.fav ? 'active' : '') + '" onclick="event.stopPropagation();toggleFav(`' + recipe.id + '`)"><i class="fas fa-heart"></i></button>'
-      + '<span class="card-cat-badge">' + getCatLabel(recipe.cat) + '</span>'
+      + '<span class="card-cat-badge">' + getCatLabel(recipe.cat) + '</span>' + (recipe.healthy ? '<span class="healthy-badge">Healthy</span>' : '')
       + '</div><div class="card-body">'
       + '<div class="card-title">' + recipe.name + '</div>'
       + '<div class="card-meta"><i class="fas fa-clock"></i> ' + formatTime(recipe.time) + ' <i class="fas fa-users"></i> ' + (recipe.portions || 4) + '</div>'
@@ -131,6 +132,7 @@ function openDetail(id) {
   document.getElementById('detail-img').src = r.photo || '';
   document.getElementById('detail-img').style.display = r.photo ? 'block' : 'none';
   document.getElementById('detail-cat-badge').textContent = getCatLabel(r.cat);
+  var detailHealthy = document.getElementById('detail-healthy-badge'); if (detailHealthy) { detailHealthy.style.display = r.healthy ? 'inline-flex' : 'none'; }
   document.getElementById('detail-title').textContent = r.name;
   document.getElementById('detail-desc').textContent = r.desc || '';
   document.getElementById('detail-time').textContent = formatTime(r.time);
@@ -241,6 +243,7 @@ function clearForm() {
   ['form-name','form-desc','form-video','form-notes'].forEach(function(id) { document.getElementById(id).value = ''; });
   document.getElementById('form-cat').value = 'plats';
   document.getElementById('form-diff').value = 'Facile';
+  var healthyCheck = document.getElementById('form-healthy'); if (healthyCheck) healthyCheck.checked = false;
   document.getElementById('form-time').value = '';
   document.getElementById('form-portions').value = '';
   document.getElementById('photo-preview').src = '';
@@ -258,6 +261,7 @@ function fillForm(r) {
   document.getElementById('form-desc').value = r.desc || '';
   document.getElementById('form-cat').value = r.cat || 'plats';
   document.getElementById('form-diff').value = r.diff || 'Facile';
+  var healthyCheck = document.getElementById('form-healthy'); if (healthyCheck) healthyCheck.checked = r.healthy || false;
   document.getElementById('form-time').value = r.time || '';
   document.getElementById('form-portions').value = r.portions || '';
   document.getElementById('form-video').value = r.video || '';
@@ -451,6 +455,7 @@ var recipe = {
     ingredients: ingredients,
     steps: steps,
     fav: existing ? existing.fav : false,
+    healthy: document.getElementById('form-healthy') ? document.getElementById('form-healthy').checked : false,
     createdAt: Date.now()
   };
   if (editingId) {
