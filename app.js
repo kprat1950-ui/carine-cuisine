@@ -42,7 +42,7 @@ async function deleteRecipe_fromCloud(id) {
 }
 function saveRecipes() {
   try { localStorage.setItem('carine_recipes', JSON.stringify(recipes)); } catch(e) {}
-}}
+}
 function saveCourses() { localStorage.setItem('carine_courses', JSON.stringify(courses)); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
