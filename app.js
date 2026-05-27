@@ -8,7 +8,17 @@ let basePortions = 4;
 let portionsMemory = JSON.parse(localStorage.getItem('carine_portions') || '{}');
 let currentPhotoBase64 = null;
 
-function saveRecipes() { localStorage.setItem('carine_recipes', JSON.stringify(recipes)); }
+function saveRecipes() {
+  try {
+    localStorage.setItem('carine_recipes', JSON.stringify(recipes));
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      showToast('Stockage plein ! Supprimez des photos pour libérer de la place.', 'error');
+    } else {
+      showToast('Erreur de sauvegarde : ' + e.message, 'error');
+    }
+  }
+}
 function saveCourses() { localStorage.setItem('carine_courses', JSON.stringify(courses)); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
 
@@ -382,7 +392,7 @@ function addStepRow(list) {
   var li = document.createElement('li');
   li.className = 'step-form-row';
   li.innerHTML = '<span class="step-num-badge">1</span>' +
-    '<input type="text" class="step-text-input" placeholder="Decrivez cette etape..." />' +
+    '<textarea class="step-text-input" placeholder="Décrivez cette étape..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>' +
     '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); updateStepNumbers()"><i class="fas fa-times"></i></button>';
   list.appendChild(li);
   updateStepNumbers();
