@@ -719,12 +719,12 @@ function buildSharePreview(recipe) {
     steps.forEach(function(section) {
       if (section.title) stepsHtml += "<div class=\"share-section-title\">" + section.title + "</div>";
       (section.items || []).forEach(function(s) {
-        if (s) { stepNum++; stepsHtml += "<li><span class=\"step-num\">" + stepNum + "</span>" + s + "</li>"; }
+        if (s && s.text) { stepNum++; stepsHtml += "<li><span class=\"step-num\">" + stepNum + "</span>" + s.text + "</li>"; }
       });
     });
   } else {
     steps.forEach(function(s, i) {
-      if (s) stepsHtml += "<li><span class=\"step-num\">" + (i+1) + "</span>" + s + "</li>";
+      if (s && s.text) stepsHtml += "<li><span class=\"step-num\">" + (i+1) + "</span>" + s.text + "</li>";
     });
   }
   var photoHtml = recipe.photo
