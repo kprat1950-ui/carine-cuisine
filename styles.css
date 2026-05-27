@@ -611,3 +611,98 @@ body { font-family: var(--font-body); background: var(--cream); color: var(--tex
   font-size: 0.7em;
   opacity: 0.6;
 }
+
+
+/* ============================================================ */
+/* HEALTHY FEATURE */
+/* ============================================================ */
+
+/* Category button */
+.cat-btn-healthy.active,
+.cat-btn-healthy:hover {
+  background: #8FAF8A !important;
+  color: white !important;
+}
+
+/* Healthy badge on cards and detail */
+.healthy-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #8FAF8A;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Small badge used in form label */
+.healthy-badge-small {
+  display: inline-flex;
+  align-items: center;
+  background: #8FAF8A;
+  color: white;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Position badge on recipe card */
+.card-img-container .healthy-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2;
+}
+
+/* Healthy toggle in form */
+.form-healthy-toggle {
+  padding: 12px 0 4px;
+}
+.healthy-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.healthy-label input[type="checkbox"] {
+  display: none;
+}
+.healthy-checkmark {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #8FAF8A;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  background: white;
+}
+.healthy-label input:checked + .healthy-checkmark {
+  background: #8FAF8A;
+  border-color: #8FAF8A;
+}
+.healthy-label input:checked + .healthy-checkmark::after {
+  content: "\2713";
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.healthy-text {
+  font-size: 0.95rem;
+  color: #3D2B1F;
+  font-weight: 500;
+}
