@@ -21,6 +21,7 @@ function saveRecipes() {
 }
 function saveCourses() { localStorage.setItem('carine_courses', JSON.stringify(courses)); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+function autoGrow(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
 
 function showToast(msg, type) {
   type = type || '';
@@ -392,7 +393,7 @@ function addStepRow(list) {
   var li = document.createElement('li');
   li.className = 'step-form-row';
   li.innerHTML = '<span class="step-num-badge">1</span>' +
-    '<textarea class="step-text-input" placeholder="Décrivez cette étape..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>' +
+    '<textarea class="step-text-input" placeholder="Décrivez cette étape..." rows="1" oninput="autoGrow(this)"></textarea>' +
     '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); updateStepNumbers()"><i class="fas fa-times"></i></button>';
   list.appendChild(li);
   updateStepNumbers();
