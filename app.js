@@ -979,3 +979,139 @@ document.addEventListener('click', function(e) {
     if (p) p.remove();
   }
 });
+
+
+// ============================================================
+// IMPORT DEPUIS TEXTE (TikTok, Instagram, blog...)
+// ============================================================
+
+document.getElementById('btn-import-text').addEventListener('click', function() {
+  document.getElementById('modal-import-text').classList.remove('hidden');
+  document.getElementById('import-text-area').value = '';
+  document.getElementById('import-text-area').focus();
+});
+
+document.getElementById('btn-close-import').addEventListener('click', function() {
+  document.getElementById('modal-import-text').classList.add('hidden');
+});
+
+document.getElementById('overlay-import-text').addEventListener('click', function() {
+  document.getElementById('modal-import-text').classList.add('hidden');
+});
+
+document.getElementById('btn-analyze-text').addEventListener('click', function() {
+  var text = document.getElementById('import-text-area').value.trim();
+  if (!text) { showToast('Colle un texte de recette d abord !', 'error'); return; }
+  var result = analyzeRecipeText(text);
+  applyAnalyzedRecipe(result);
+  document.getElementById('modal-import-text').classList.add('hidden');
+  showToast('Recette importée ! Vérifie et complète si besoin.', 'success');
+});
+
+function analyzeRecipeText(text) {
+  var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+  var result = { name: '', ingredients: [], steps: [] };
+  var units = ['g','kg','ml','cl','l','dl','L','tasse','tasses','cs','cc','càs','càc','c. à soupe','c. à café','cuillère','cuillères','sachet','sachets','pince','pincée','boite','boîte','tranche','tranches','filet','gousse','gousses'];
+  var unitRegex = new RegExp('(\\d+[\\.,]?\\d*)\\s*(' + units.join('|') + ')\\b', 'i');
+  var ingKeywords = /ingr[eé]dients?|pour la recette|il faut/i;
+  var stepKeywords = /pr[eé]paration|[eé]tapes?|instructions?|recette|m[eé]thode/i;
+  var mode = 'start';
+
+  lines.forEach(function(line, idx) {
+    var clean = line.replace(/^[-•*✓✔️🔸🔹▪️▸►→]+\s*/, '').trim();
+    var lower = line.toLowerCase();
+
+    // First non-empty line is likely the recipe name
+    if (idx === 0 && !ingKeywords.test(line) && !stepKeywords.test(line) && line.length < 80) {
+      result.name = clean;
+      return;
+    }
+
+    // Detect section headers
+    if (ingKeywords.test(lower)) { mode = 'ingredients'; return; }
+    if (stepKeywords.test(lower)) { mode = 'steps'; return; }
+
+    // Detect numbered steps: "1.", "1)", "Étape 1", etc.
+    var stepNum = clean.match(/^(?:étapes*)?(\d+)[.)\-\s]/i);
+
+    // Detect ingredient: has a number + unit OR is in ingredient mode with a dash/bullet
+    var hasQty = unitRegex.test(clean) || /^\d+/.test(clean);
+    var hasBullet = /^[-•*]/.test(line);
+
+    if (mode === 'ingredients' || (mode !== 'steps' && (hasQty || hasBullet) && !stepNum)) {
+      // Try to parse qty + unit + name
+      var qtyMatch = clean.match(/(\d+[\.,]?\d?)\s*([a-zA-Zà-ÿ]+)?\s+(.+)/);
+      if (qtyMatch) {
+        var qty = qtyMatch[1] || '';
+        var unit = '';
+        var name = clean;
+        var m = clean.match(new RegExp('(\d+[\.,]?\d*)\s*(' + units.join('|') + ')\b\s*(.*)', 'i'));
+        if (m) { qty = m[1]; unit = m[2]; name = m[3]; }
+        else {
+          var m2 = clean.match(/(\d+[\.,]?\d*)\s+(.*)/);
+          if (m2) { qty = m2[1]; name = m2[2]; }
+        }
+        if (name.trim()) result.ingredients.push({ qty: qty, unit: unit, name: name.trim() });
+      } else if (clean.length > 2 && mode === 'ingredients') {
+        result.ingredients.push({ qty: '', unit: '', name: clean });
+      }
+    } else if (mode === 'steps' || stepNum) {
+      var stepText = stepNum ? clean.replace(/^(?:étapes*)?\d+[.)\-\s]+/i, '').trim() : clean;
+      if (stepText.length > 3) result.steps.push({ text: stepText });
+    }
+  });
+
+  // Fallback: if no steps found, treat long lines as steps
+  if (result.steps.length === 0) {
+    lines.forEach(function(line) {
+      var clean = line.replace(/^[-•*\d.)]+\s*/, '').trim();
+      if (clean.length > 20 && !/ingr[eé]dients?/i.test(clean)) {
+        result.steps.push({ text: clean });
+      }
+    });
+  }
+
+  return result;
+}
+
+function applyAnalyzedRecipe(data) {
+  // Fill name
+  if (data.name) document.getElementById('form-name').value = data.name;
+
+  // Fill ingredients
+  if (data.ingredients.length > 0) {
+    document.getElementById('ingredients-list-form').innerHTML = '';
+    var sec = addIngredientSection('');
+    var list = sec.querySelector('.ing-rows-list');
+    // Remove default empty row
+    list.innerHTML = '';
+    data.ingredients.forEach(function(ing) {
+      var li = document.createElement('li');
+      li.className = 'ingredient-form-row';
+      li.innerHTML = '<input type="text" class="ing-qty" placeholder="Qté" value="' + (ing.qty||'') + '" />' +
+        '<input type="text" class="ing-unit" placeholder="Unité" value="' + (ing.unit||'') + '" />' +
+        '<input type="text" class="ing-name" placeholder="Nom ingrédient" value="' + ing.name.replace(/"/g,'&quot;') + '" />' +
+        '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>';
+      list.appendChild(li);
+    });
+  }
+
+  // Fill steps
+  if (data.steps.length > 0) {
+    document.getElementById('steps-list-form').innerHTML = '';
+    var ssec = addStepSection('');
+    var slist = ssec.querySelector('.step-rows-list');
+    slist.innerHTML = '';
+    data.steps.forEach(function(step) {
+      var li = document.createElement('li');
+      li.className = 'step-form-row';
+      li.innerHTML = '<span class="step-num-badge">1</span>' +
+        '<textarea class="step-text-input" rows="1" oninput="autoGrow(this)">' + step.text.replace(/</g,'&lt;') + '</textarea>' +
+        '<button type="button" class="btn-remove-item" onclick="this.parentElement.remove(); updateStepNumbers()"><i class="fas fa-times"></i></button>';
+      slist.appendChild(li);
+    });
+    updateStepNumbers();
+    // Trigger auto-grow on all textareas
+    slist.querySelectorAll('textarea').forEach(function(ta) { autoGrow(ta); });
+  }
+}
