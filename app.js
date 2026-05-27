@@ -536,7 +536,7 @@ document.getElementById('btn-courses').addEventListener('click', openCourses);
 document.getElementById('btn-add-main').addEventListener('click', function() { openForm(); });
 document.getElementById('btn-add-empty').addEventListener('click', function() { openForm(); });
 document.getElementById('nav-add').addEventListener('click', function() { openForm(); });
-document.getElementById('nav-courses-btn').addEventListener('click', openCourses);
+document.getElementById('nav-surprise').addEventListener('click', surpriseMe);
 document.getElementById('nav-favs').addEventListener('click', function() {
   currentFilter = 'favoris';
   document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.cat === 'favoris'); });
@@ -686,6 +686,20 @@ function downloadSharePDF() {
 // ============================================================
 // EVENT LISTENERS for new features
 // ============================================================
+
+// ============================================================
+// SURPRISE-MOI
+// ============================================================
+function surpriseMe() {
+  var pool = recipes.filter(function(r) { return r.fav; });
+  if (pool.length === 0) pool = recipes.slice();
+  if (pool.length === 0) { showToast("Pas encore de recettes !", ""); return; }
+  var random = pool[Math.floor(Math.random() * pool.length)];
+  // Small celebration before opening
+  showToast("🎲 Bonne cuisine !", "success");
+  setTimeout(function() { openDetail(random.id); }, 400);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
   var btnExport = document.getElementById("btn-export-json");
   if (btnExport) btnExport.addEventListener("click", exportRecipes);
