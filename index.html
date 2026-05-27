@@ -143,6 +143,9 @@
         <button type="button" class="btn-save" id="btn-save-recipe"><i class="fas fa-check"></i></button>
       </div>
       <div class="form-body">
+        <button type="button" class="btn-import-text" id="btn-import-text">
+          <i class="fas fa-magic"></i> Importer depuis du texte (TikTok, Instagram...)
+        </button>
         <div class="form-photo-picker" id="form-photo-picker">
           <input type="file" id="photo-input" accept="image/*" class="hidden" />
           <div id="photo-preview-container">
@@ -230,6 +233,22 @@
     </div>
   </div>
 </div>
+  <!-- Modal import texte -->
+  <div class="modal hidden" id="modal-import-text">
+    <div class="modal-overlay" id="overlay-import-text"></div>
+    <div class="modal-sheet" style="max-height:85vh; border-radius:24px 24px 0 0; padding:24px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <h3 style="font-family:var(--font-title); color:var(--terracotta); font-size:1.2rem;">Importer une recette</h3>
+        <button type="button" id="btn-close-import" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-light);">&times;</button>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text-medium); margin-bottom:12px;">Colle ici le texte de description (TikTok, Instagram, blog...) et l'app détecte automatiquement les ingrédients et les étapes.</p>
+      <textarea id="import-text-area" rows="10" placeholder="Ex: Tarte au citron&#10;Ingrédients :&#10;- 200g de farine&#10;- 100g de beurre&#10;Préparation :&#10;1. Mélanger la farine et le beurre..." style="width:100%; padding:12px; border:1.5px solid var(--border); border-radius:12px; font-family:var(--font-body); font-size:0.9rem; resize:vertical; outline:none; box-sizing:border-box;"></textarea>
+      <button type="button" id="btn-analyze-text" style="margin-top:12px; width:100%; padding:14px; background:linear-gradient(135deg,var(--coral),var(--terracotta)); color:white; border:none; border-radius:14px; font-size:1rem; font-weight:700; cursor:pointer; font-family:var(--font-body);">
+        <i class="fas fa-magic"></i> Analyser et remplir
+      </button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
   <script src="firebase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
