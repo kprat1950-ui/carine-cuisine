@@ -561,6 +561,7 @@ function closeForm() {
   editingId = null;
 }
 document.getElementById('btn-back-form').addEventListener('click', closeForm);
+document.getElementById('btn-back-detail').addEventListener('click', closeDetail);
 document.getElementById('overlay-form').addEventListener('click', closeForm);
 
 document.getElementById('btn-delete-recipe').addEventListener('click', function() {
