@@ -53,6 +53,7 @@
         <button type="button" class="cat-btn" data-cat="boissons">Boissons</button>
         <button type="button" class="cat-btn" data-cat="snacks">Snacks</button>
         <button type="button" class="cat-btn" data-cat="favoris">Favoris</button>
+          <button type="button" class="cat-btn cat-btn-healthy" data-cat="healthy">Healthy</button>
       </div>
     </header>
     <main class="main-content">
@@ -92,6 +93,7 @@
       <div class="modal-body">
         <div class="detail-header">
           <span class="detail-cat-badge" id="detail-cat-badge"></span>
+              <span class="healthy-badge" id="detail-healthy-badge" style="display:none">Healthy</span>
           <h2 id="detail-title"></h2>
           <p class="detail-desc" id="detail-desc"></p>
           <div class="detail-meta">
@@ -181,6 +183,13 @@
           <label>Etapes de preparation</label>
           <div id="steps-list-form"></div>
           <button type="button" class="btn-add-item" id="btn-add-step"><i class="fas fa-layer-group"></i> Ajouter une section</button>
+        </div>
+        <div class="form-section form-healthy-toggle">
+          <label class="healthy-label">
+            <input type="checkbox" id="form-healthy" />
+            <span class="healthy-checkmark"></span>
+            <span class="healthy-text">Recette Healthy <span class="healthy-badge-small">Healthy</span></span>
+          </label>
         </div>
         <div class="form-section"><label>Lien video (TikTok, YouTube...)</label><input type="url" id="form-video" placeholder="https://www.tiktok.com/..." /></div>
         <div class="form-section"><label>Notes personnelles</label><textarea id="form-notes" placeholder="Astuces, variantes, souvenirs..." rows="3"></textarea></div>
