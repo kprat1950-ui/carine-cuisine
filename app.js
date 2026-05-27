@@ -413,15 +413,28 @@ document.getElementById('photo-input').addEventListener('change', function(e) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
-    currentPhotoBase64 = ev.target.result;
-    var preview = document.getElementById('photo-preview');
-    var placeholder = document.getElementById('photo-placeholder');
-    preview.src = currentPhotoBase64;
-    preview.classList.remove('hidden');
-    placeholder.classList.add('hidden');
+    var img = new Image();
+    img.onload = function() {
+      var MAX_SIZE = 800;
+      var w = img.width, h = img.height;
+      if (w > MAX_SIZE || h > MAX_SIZE) {
+        if (w > h) { h = Math.round(h * MAX_SIZE / w); w = MAX_SIZE; }
+        else { w = Math.round(w * MAX_SIZE / h); h = MAX_SIZE; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.75);
+      var preview = document.getElementById('photo-preview');
+      var placeholder = document.getElementById('photo-placeholder');
+      preview.src = currentPhotoBase64;
+      preview.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
-});
+});;
 document.getElementById('btn-save-recipe').addEventListener('click', saveRecipe);
 function saveRecipe() {
   var name = document.getElementById('form-name').value.trim();
